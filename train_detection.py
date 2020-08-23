@@ -31,7 +31,7 @@ parser.add_argument('--vector_cache', type=str, default="data/sq_glove300d.pt")
 parser.add_argument('--weight_decay',type=float, default=0)
 parser.add_argument('--fix_embed', action='store_false', dest='train_embed')
 # added for testing
-parser.add_argument('--output', type=str, default='processed/')
+parser.add_argument('--output', type=str, default='processed2/')
 args = parser.parse_args()
 
 outfile = open(os.path.join(args.output, 'dete_train.txt'), 'w')
