@@ -232,16 +232,13 @@ for i, names in enumerate(head_mid_idx):
         id_match.add(i)
 tupleset = set(tupleset)
 tuple_topic = []
-
-nparts = 5
-for j in range(nparts):
-    with open('data/names_file_%d.txt' % (j), 'r') as f:
-        for i, line in enumerate(f):
-            if i % 1000000 == 0:
-                print("line: {}".format(i))
-            items = line.strip().split("\t")
-            if (items[0], processed_text(items[2])) in tupleset and items[1] == "name":
-                tuple_topic.append(items[0], processed_text(items[2]))
+with open('data/FB5M.name.txt', 'r') as f:
+    for i, line in enumerate(f):
+        if i % 1000000 == 0:
+            print("line: {}".format(i))
+        items = line.strip().split("\t")
+        if (www2fb(clean_uri(items[0])), processed_text(clean_uri(items[2]))) in tupleset and items[1] == "<fb:type.object.name>":
+            tuple_topic.append((www2fb(clean_uri(items[0])), processed_text(clean_uri(items[2]))))
 tuple_topic = set(tuple_topic)
 
 

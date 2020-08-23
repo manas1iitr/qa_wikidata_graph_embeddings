@@ -117,7 +117,7 @@ if __name__ == '__main__':
     parser.add_argument('-w', '--wdsubset', dest='wdsubset', action='store', required=True,
                         help='path to wiki subset file')
     parser.add_argument('-d', '--dataset', type=str, default='data', help='directory contains annotated_fb_data_*')
-    parser.add_argument('-o', '--output', type=str, default='processed/', help='output directory for new dataset')
+    parser.add_argument('-o', '--output', type=str, default='processed2/', help='output directory for new dataset')
     args = parser.parse_args()
     os.makedirs(args.output, exist_ok=True)
 

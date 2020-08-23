@@ -34,7 +34,7 @@ parser.add_argument('--clip_gradient', type=float, default=0.6, help='gradient c
 parser.add_argument('--vector_cache', type=str, default="data/sq_glove300d.pt")
 parser.add_argument('--weight_decay',type=float, default=0)
 parser.add_argument('--fix_embed', action='store_false', dest='train_embed')
-parser.add_argument('--output', type=str, default='processed')
+parser.add_argument('--output', type=str, default='processed2')
 args = parser.parse_args()
 
 ################## Prepare training and validation datasets ##################
@@ -68,12 +68,21 @@ nodes = set(nodes)
 labels  = {}
 vecs    = {}
 nparts = 4
+
+# list_nodes = []
+# with open("data/annotated_wd_data_train_answerable.txt", "r") as f:
+#     for line in f:
+#         items = line.strip().split("\t")
+#         list_nodes.append(items[0])
+#         list_nodes.append(items[2])
+
+# list_nodes = set(list_nodes)
+
 for i in range(nparts):
-    with open("processed/complex_embeddings/entity_names_all_%d.json" % (i), "r") as f:
-            
+    with open("processed2/diagonal-model/entity_names_all_%d.json" % (i), "r") as f:            
             # in the following x is the qid and j is index
             labels[i]  = {x: j for j, x in enumerate(json.load(f))}
-            h5file = h5py.File("processed/complex_embeddings/embeddings_all_%d.v50.h5" % (i))
+            h5file = h5py.File("processed2/diagonal-model/v40/embeddings_all_%d.v40.h5" % (i))
             # import pdb
             # pdb.set_trace()
             for node in labels[i]:
@@ -83,6 +92,16 @@ for i in range(nparts):
                     idx = mid_dic[node]
                     vecs[idx] = h5file['embeddings'][labels[i][node]]
             h5file.close()
+
+# c=0
+# for node in list_nodes:
+#     for i in range(nparts):
+#         if node in labels[i]:
+#             c+=1
+
+# print(c)
+# import pdb
+# pdb.set_trace()
 
 M_keys  = vecs.keys()
 M_keys = sorted(M_keys)

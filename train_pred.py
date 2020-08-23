@@ -33,7 +33,7 @@ parser.add_argument('--clip_gradient', type=float, default=0.6, help='gradient c
 parser.add_argument('--vector_cache', type=str, default="data/sq_glove300d.pt")
 parser.add_argument('--weight_decay',type=float, default=0)
 parser.add_argument('--fix_embed', action='store_false', dest='train_embed')
-parser.add_argument('--output', type=str, default='processed')
+parser.add_argument('--output', type=str, default='processed2')
 args = parser.parse_args()
 
 ################## Prepare training and validation datasets ##################
@@ -47,28 +47,28 @@ for line in open(os.path.join(args.output, 'relation2id.txt'), 'r'):
 # predicates_emb = torch.from_numpy(np.fromfile(os.path.join(args.output, 'predicates_emb.bin'), dtype=np.float32).reshape((len(pre_dic), args.embed_dim)))
 
 print(len(relations))
-with open("processed/complex_embeddings/dynamic_rel_names.json", "r") as f:
+with open("processed2/diagonal-model/dynamic_rel_names.json", "r") as f:
         rel_labels = {x: j for j, x in enumerate(json.load(f))}
 
 # import pdb
 # pdb.set_trace()
-model = h5py.File("processed/complex_embeddings/model.v50.h5")
+model = h5py.File("processed2/diagonal-model/v40/model.v40.h5")
 ops = {}
 ops['lhs'] = {}
 ops['rhs'] = {}
 for label in rel_labels:
     if label in relations:
         idx = pre_dic[label]
-        for side in ['lhs', 'rhs']:
-            real_half = model['model']['relations']['0']['operator'][side]['real'][rel_labels[label]]
-            imag_half = model['model']['relations']['0']['operator'][side]['imag'][rel_labels[label]]
-            ops[side][idx] = np.concatenate([real_half, imag_half])
+        for side in ['lhs']:
+            real_half = model['model']['relations']['0']['operator'][side]['diagonals'][rel_labels[label]]
+            # imag_half = model['model']['relations']['0']['operator'][side]['imag'][rel_labels[label]]
+            ops[side][idx] = real_half
 
 model.close()
 
 op_keys = [x for x in ops['lhs']]
 LHS = np.stack([ops['lhs'][x] for x in op_keys])
-RHS = np.stack([ops['rhs'][x] for x in op_keys])
+# RHS = np.stack([ops['rhs'][x] for x in op_keys])
 op_id   = {x: i for i, x in enumerate(op_keys)}
 keys_emb = ops['lhs'].keys()
 keys_emb = sorted(keys_emb)
@@ -76,9 +76,10 @@ keys_emb = sorted(keys_emb)
 # keys_pre = sorted(keys_pre)
 predicates_emb = []
 for i in keys_emb:
-    predicates_emb.append((LHS[i]+RHS[i])/2.0)
+    predicates_emb.append(LHS[i])
 # predicates_emb = (LHS+RHS)/2.0
 predicates_emb = np.array(predicates_emb, dtype=np.float32)
+np.save('predicates_emb.npy', predicates_emb)
 predicates_emb = torch.from_numpy(predicates_emb)
 import pdb
 pdb.set_trace()

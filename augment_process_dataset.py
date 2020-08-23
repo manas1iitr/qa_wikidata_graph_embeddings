@@ -176,7 +176,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Augment dataset with line ids, shorted names, entity names')
     parser.add_argument('-d', '--dataset', dest='dataset', action='store', required=True,
                         help='path to the dataset directory - contains train, valid, test files')
-    parser.add_argument('-o', '--output', type=str, default='processed', help='output directory for new dataset')
+    parser.add_argument('-o', '--output', type=str, default='processed2', help='output directory for new dataset')
 
     args = parser.parse_args()
     print("Dataset: {}".format(args.dataset))
