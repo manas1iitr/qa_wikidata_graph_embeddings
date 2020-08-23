@@ -1,7 +1,7 @@
 import numpy as np
 
 ent_emb = {}
-sz = 50000
+sz = 10000
 entity_emb = np.load('entity_embeddings.npy')
 print(len(entity_emb))
 
@@ -19,5 +19,11 @@ for i in range(0, len(entity_emb), sz):
 # print(ent_emb[0].shape)
 # print(ent_emb[9].shape)
 
+# np.save('entity_embeddings_0', ent_emb[0])
+
 for i,emb in enumerate(ent_emb):
-    np.save('entity_embeddings_%d' % (i), emb)
+    # if i==0:
+    #     continue
+    print(i)
+    print(ent_emb[emb].shape)
+    np.save('entity_embeddings_%d' % (i), ent_emb[emb])
