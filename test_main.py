@@ -15,13 +15,13 @@ from util import www2fb, processed_text, clean_uri
 parser = ArgumentParser(description="Joint Prediction")
 parser.add_argument('--no_cuda', action='store_false', help='do not use cuda', dest='cuda')
 parser.add_argument('--gpu', type=int, default=0)  # Use -1 for CPU
-parser.add_argument('--embed_dim', type=int, default=250)
+parser.add_argument('--embed_dim', type=int, default=400)
 parser.add_argument('--batch_size', type=int, default=16)
 parser.add_argument('--seed', type=int, default=3435)
 parser.add_argument('--dete_model', type=str, default='dete_best_model.pt')
 parser.add_argument('--entity_model', type=str, default='entity_best_model.pt')
 parser.add_argument('--pred_model', type=str, default='pred_best_model.pt')
-parser.add_argument('--output', type=str, default='processed')
+parser.add_argument('--output', type=str, default='processed2')
 args = parser.parse_args()
 args.dete_model = os.path.join(args.output, args.dete_model)
 args.entity_model = os.path.join(args.output, args.entity_model)
@@ -128,8 +128,12 @@ for line in open(os.path.join(args.output, 'relation2id.txt'), 'r'):
     pre_dic[items[0]] = int(items[1])
     pre_num_dic[int(items[1])] = items[0]
 # Embedding for MID
-entities_emb = np.fromfile(os.path.join(args.output, 'entities_emb.bin'), dtype=np.float32).reshape((len(mid_dic), args.embed_dim))
-predicates_emb = np.fromfile(os.path.join(args.output, 'predicates_emb.bin'), dtype=np.float32).reshape((-1, args.embed_dim))
+# entities_emb = np.fromfile(os.path.join(args.output, 'entities_emb.bin'), dtype=np.float32).reshape((len(mid_dic), args.embed_dim))
+# predicates_emb = np.fromfile(os.path.join(args.output, 'predicates_emb.bin'), dtype=np.float32).reshape((-1, args.embed_dim))
+predicates_emb = np.load('predicates_emb.npy')
+entities_emb = np.load('entity_embeddings_0.npy')
+for i in range(1,46,1):
+    entities_emb = np.concatenate((entities_emb, np.load('entity_embeddings_%d.npy' %(i))), axis=0)
 #names_map = {}
 index_names = {}
 
@@ -232,13 +236,15 @@ for i, names in enumerate(head_mid_idx):
         id_match.add(i)
 tupleset = set(tupleset)
 tuple_topic = []
-with open('data/FB5M.name.txt', 'r') as f:
-    for i, line in enumerate(f):
-        if i % 1000000 == 0:
-            print("line: {}".format(i))
-        items = line.strip().split("\t")
-        if (www2fb(clean_uri(items[0])), processed_text(clean_uri(items[2]))) in tupleset and items[1] == "<fb:type.object.name>":
-            tuple_topic.append((www2fb(clean_uri(items[0])), processed_text(clean_uri(items[2]))))
+nparts = 5
+for j in range(nparts):
+    with open('data/names_file_%d.txt' %(j), 'r') as f:
+        for i, line in enumerate(f):
+            if i % 1000000 == 0:
+                print("line: {}".format(i))
+            items = line.strip().split("\t")
+            if (items[0], items[2]) in tupleset and items[1] == "name":
+                tuple_topic.append((items[0], items[2]))
 tuple_topic = set(tuple_topic)
 
 
@@ -373,10 +379,13 @@ for i, head_ids in enumerate(head_mid_idx):  # head_ids is mids
         learned_fact[' '.join([learned_head[i], pre_num_dic[learned_pred[i]]])] = i
 
 learned_tail = [[] for i in range(total_num)]
-for line in open(os.path.join(args.output, 'cleanedFB.txt'), 'r'):
-    items = line.strip().split("\t")
-    if learned_fact.get(' '.join([items[0], items[2]])) is not None:
-        learned_tail[learned_fact[' '.join([items[0], items[2]])]].extend(items[1].split())
+for filename in os.listdir(os.path.join(args.output, 'cleanedWD')):
+    filepath = args.output + '/cleanedWD/' + filename
+    print(filepath)
+    for line in open(filepath, 'r'):
+        items = line.strip().split("\t")
+        if learned_fact.get(' '.join([items[0], items[2]])) is not None:
+            learned_tail[learned_fact[' '.join([items[0], items[2]])]].extend(items[1].split())
 # for i, tail_id in enumerate(learned_tail):
 #    if not tail_id:
 #        learned_tail[i] = mid_num_dic[euclidean_distances(
@@ -385,11 +394,14 @@ for line in open(os.path.join(args.output, 'cleanedFB.txt'), 'r'):
 
 corr_head, correct, corr_all = 0, 0, 0
 for i, tail_id in enumerate(gt_tail):
+    if i==793:
+        print(learned_head[i], pre_num_dic[learned_pred[i]], learned_tail[i])
     if gt_head[i] == learned_head[i]:
         corr_head += 1
         if gt_pred[i] == pre_num_dic[learned_pred[i]]:
             correct += 1
             if tail_id in learned_tail[i]:
+                print (i, tail_id)
                 corr_all += 1
 
 print('final accuracy: {}, head acc {}, all acc {}'.format(correct / total_num, corr_head / total_num, corr_all / total_num))

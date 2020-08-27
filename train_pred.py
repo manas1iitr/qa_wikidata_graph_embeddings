@@ -45,45 +45,45 @@ for line in open(os.path.join(args.output, 'relation2id.txt'), 'r'):
     relations.append(items[0])
 # Embedding for predicates
 # predicates_emb = torch.from_numpy(np.fromfile(os.path.join(args.output, 'predicates_emb.bin'), dtype=np.float32).reshape((len(pre_dic), args.embed_dim)))
-
+predicates_emb = torch.from_numpy(np.load('predicates_emb.npy'))
 print(len(relations))
-with open("processed2/diagonal-model/dynamic_rel_names.json", "r") as f:
-        rel_labels = {x: j for j, x in enumerate(json.load(f))}
-
-# import pdb
-# pdb.set_trace()
-model = h5py.File("processed2/diagonal-model/v40/model.v40.h5")
-ops = {}
-ops['lhs'] = {}
-ops['rhs'] = {}
-for label in rel_labels:
-    if label in relations:
-        idx = pre_dic[label]
-        for side in ['lhs']:
-            real_half = model['model']['relations']['0']['operator'][side]['diagonals'][rel_labels[label]]
-            # imag_half = model['model']['relations']['0']['operator'][side]['imag'][rel_labels[label]]
-            ops[side][idx] = real_half
-
-model.close()
-
-op_keys = [x for x in ops['lhs']]
-LHS = np.stack([ops['lhs'][x] for x in op_keys])
-# RHS = np.stack([ops['rhs'][x] for x in op_keys])
-op_id   = {x: i for i, x in enumerate(op_keys)}
-keys_emb = ops['lhs'].keys()
-keys_emb = sorted(keys_emb)
-# keys_pre = pre_dic.keys()
-# keys_pre = sorted(keys_pre)
-predicates_emb = []
-for i in keys_emb:
-    predicates_emb.append(LHS[i])
-# predicates_emb = (LHS+RHS)/2.0
-predicates_emb = np.array(predicates_emb, dtype=np.float32)
-np.save('predicates_emb.npy', predicates_emb)
-predicates_emb = torch.from_numpy(predicates_emb)
-import pdb
-pdb.set_trace()
-
+#with open("processed2/diagonal-model/dynamic_rel_names.json", "r") as f:
+#        rel_labels = {x: j for j, x in enumerate(json.load(f))}
+#
+## import pdb
+## pdb.set_trace()
+#model = h5py.File("processed2/diagonal-model/v40/model.v40.h5")
+#ops = {}
+#ops['lhs'] = {}
+#ops['rhs'] = {}
+#for label in rel_labels:
+#    if label in relations:
+#        idx = pre_dic[label]
+#        for side in ['lhs']:
+#            real_half = model['model']['relations']['0']['operator'][side]['diagonals'][rel_labels[label]]
+#            # imag_half = model['model']['relations']['0']['operator'][side]['imag'][rel_labels[label]]
+#            ops[side][idx] = real_half
+#
+#model.close()
+#
+#op_keys = [x for x in ops['lhs']]
+#LHS = np.stack([ops['lhs'][x] for x in op_keys])
+## RHS = np.stack([ops['rhs'][x] for x in op_keys])
+#op_id   = {x: i for i, x in enumerate(op_keys)}
+#keys_emb = ops['lhs'].keys()
+#keys_emb = sorted(keys_emb)
+## keys_pre = pre_dic.keys()
+## keys_pre = sorted(keys_pre)
+#predicates_emb = []
+#for i in keys_emb:
+#    predicates_emb.append(LHS[i])
+## predicates_emb = (LHS+RHS)/2.0
+#predicates_emb = np.array(predicates_emb, dtype=np.float32)
+#np.save('predicates_emb.npy', predicates_emb)
+#predicates_emb = torch.from_numpy(predicates_emb)
+#import pdb
+#pdb.set_trace()
+#
 
 # Set up the data for training
 for filename in ['train.txt', 'valid.txt']:
@@ -254,7 +254,7 @@ while True:
             for dev_batch_idx, dev_batch in enumerate(dev_iter):
                 batch_size = dev_batch.text.size()[1]
                 answer = model(dev_batch)
-                learned_pred = euclidean_distances(answer.cpu().data.numpy(), predicates_emb).argmin(axis=1)
+                learned_pred = euclidean_distances(answer.cpu().data.numpy(), predicates_emb.cpu()).argmin(axis=1)
                 n_dev_correct += sum(dev_batch.mid.cpu().data.numpy() == learned_pred)
                 dev_loss += criterion(answer, predicates_emb[dev_batch.mid, :]).item() * batch_size
 

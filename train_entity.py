@@ -64,56 +64,69 @@ outfile.close()
         # if context:
 
 # entities_emb = np.fromfile(os.path.join(args.output, 'entities_emb.bin'), dtype=np.float32).reshape((len(mid_dic), args.embed_dim))
-nodes = set(nodes)
-labels  = {}
-vecs    = {}
-nparts = 4
+entities_emb = np.load('entity_embeddings_0.npy')
+for i in range(1,46,1):
+    entities_emb = np.concatenate((entities_emb, np.load('entity_embeddings_%d.npy' %(i))), axis=0)
+# entities_emb = np.concatenate((entities_emb, np.load('entity_embeddings_1.npy')), axis=0)
+# entities_emb = np.concatenate((entities_emb, np.load('entity_embeddings_2.npy')), axis=0)
+# entities_emb = np.concatenate((entities_emb, np.load('entity_embeddings_3.npy')), axis=0)
+# entities_emb = np.concatenate((entities_emb, np.load('entity_embeddings_4.npy')), axis=0)
+# entities_emb = np.concatenate((entities_emb, np.load('entity_embeddings_5.npy')), axis=0)
+# entities_emb = np.concatenate((entities_emb, np.load('entity_embeddings_6.npy')), axis=0)
+# entities_emb = np.concatenate((entities_emb, np.load('entity_embeddings_7.npy')), axis=0)
+# entities_emb = np.concatenate((entities_emb, np.load('entity_embeddings_8.npy')), axis=0)
+# entities_emb = np.concatenate((entities_emb, np.load('entity_embeddings_9.npy')), axis=0)
+print(entities_emb.shape)
+# nodes = set(nodes)
+# labels  = {}
+# vecs    = {}
+# nparts = 4
 
-# list_nodes = []
-# with open("data/annotated_wd_data_train_answerable.txt", "r") as f:
-#     for line in f:
-#         items = line.strip().split("\t")
-#         list_nodes.append(items[0])
-#         list_nodes.append(items[2])
+# # list_nodes = []
+# # with open("data/annotated_wd_data_train_answerable.txt", "r") as f:
+# #     for line in f:
+# #         items = line.strip().split("\t")
+# #         list_nodes.append(items[0])
+# #         list_nodes.append(items[2])
 
-# list_nodes = set(list_nodes)
+# # list_nodes = set(list_nodes)
 
-for i in range(nparts):
-    with open("processed2/diagonal-model/entity_names_all_%d.json" % (i), "r") as f:            
-            # in the following x is the qid and j is index
-            labels[i]  = {x: j for j, x in enumerate(json.load(f))}
-            h5file = h5py.File("processed2/diagonal-model/v40/embeddings_all_%d.v40.h5" % (i))
-            # import pdb
-            # pdb.set_trace()
-            for node in labels[i]:
-                if node in nodes:
-                    # import pdb
-                    # pdb.set_trace()
-                    idx = mid_dic[node]
-                    vecs[idx] = h5file['embeddings'][labels[i][node]]
-            h5file.close()
+# for i in range(nparts):
+#     with open("processed2/diagonal-model/entity_names_all_%d.json" % (i), "r") as f:            
+#             # in the following x is the qid and j is index
+#             labels[i]  = {x: j for j, x in enumerate(json.load(f))}
+#             h5file = h5py.File("processed2/diagonal-model/v40/embeddings_all_%d.v40.h5" % (i))
+#             # import pdb
+#             # pdb.set_trace()
+#             for node in labels[i]:
+#                 if node in nodes:
+#                     # import pdb
+#                     # pdb.set_trace()
+#                     idx = mid_dic[node]
+#                     vecs[idx] = h5file['embeddings'][labels[i][node]]
+#             h5file.close()
 
-# c=0
-# for node in list_nodes:
-#     for i in range(nparts):
-#         if node in labels[i]:
-#             c+=1
+# # c=0
+# # for node in list_nodes:
+# #     for i in range(nparts):
+# #         if node in labels[i]:
+# #             c+=1
 
-# print(c)
-# import pdb
-# pdb.set_trace()
-
-M_keys  = vecs.keys()
-M_keys = sorted(M_keys)
-entities_emb = []
-for i in M_keys:
-    entities_emb.append(vecs[i])
-# entities_emb = np.stack([vecs[x] for x in M_keys])
-entities_emb = np.array(entities_emb, dtype=np.float32)
-np.save('entity_embeddings.npy', entities_emb)
-entities_emb2 = np.load('entity_embeddings.npy')
+# # print(c)
 import pdb
 pdb.set_trace()
+
+# M_keys  = vecs.keys()
+# M_keys = sorted(M_keys)
+# entities_emb = []
+# for i in M_keys:
+#     entities_emb.append(vecs[i])
+# # entities_emb = np.stack([vecs[x] for x in M_keys])
+# entities_emb = np.array(entities_emb, dtype=np.float32)
+# np.save('entity_embeddings.npy', entities_emb)
+# entities_emb2 = np.load('entity_embeddings.npy')
+# import pdb
+# pdb.set_trace()
 
 
 
